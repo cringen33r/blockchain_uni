@@ -1,30 +1,48 @@
-const connectButton = document.getElementById('connectButton');
-const accountInfo = document.getElementById('accountInfo');
+// ВСТАВЬ сюда адрес развернутого контракта
+const contractAddress = "0xd9145CCE52D386f254917e481eB44e9943F39138";
 
 
-if (typeof window.ethereum !== 'undefined') {
-const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-
-connectButton.addEventListener('click', async () => {
-try {
-await window.ethereum.request({ method: 'eth_requestAccounts' });
-const signer = provider.getSigner();
-const address = await signer.getAddress();
-const balance = await provider.getBalance(address);
-
-
-accountInfo.innerHTML = `
-<p>Адрес кошелька: ${address}</p>
-<p>Баланс (в Wei): ${balance.toString()}</p>
-<p>Баланс (в Ether): ${ethers.utils.formatEther(balance)}</p>
-`;
-} catch (error) {
-console.error("Ошибка при подключении:", error);
+const contractAbi = [
+{
+"inputs": [
+{ "internalType": "string", "name": "_message", "type": "string" }
+],
+"name": "setMessage",
+"outputs": [],
+"stateMutability": "nonpayable",
+"type": "function"
+},
+{
+"inputs": [],
+"name": "getMessage",
+"outputs": [
+{ "internalType": "string", "name": "", "type": "string" }
+],
+"stateMutability": "view",
+"type": "function"
 }
-});
+];
 
 
+if (window.ethereum) {
+const provider = new ethers.providers.Web3Provider(window.ethereum);
+const signer = provider.getSigner();
+
+
+const contract = new ethers.Contract(contractAddress, contractAbi, signer);
+
+
+document.getElementById('setMessageButton').onclick = async () => {
+const message = document.getElementById('messageInput').value;
+await contract.setMessage(message);
+alert('Сообщение установлено!');
+};
+
+
+document.getElementById('getMessageButton').onclick = async () => {
+const message = await contract.getMessage();
+document.getElementById('messageDisplay').innerText = message;
+};
 } else {
-accountInfo.innerHTML = '<p>Пожалуйста, установите Metamask.</p>';
+alert('Установите Metamask.');
 }
